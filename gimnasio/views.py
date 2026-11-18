@@ -433,6 +433,7 @@ class ValidarAccesoQRApiView(APIView):
     POST /api/acceso/escanear-qr/
     Body: {"codigo_qr": "UUID-HEX-FORMAT"}
     """
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -514,6 +515,7 @@ class DashboardAforoApiView(APIView):
     Endpoint de sondeo en tiempo real para el control de aforo:
     GET /api/dashboard/aforo/
     """
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def get(self, request):

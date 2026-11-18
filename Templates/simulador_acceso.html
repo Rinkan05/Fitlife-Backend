@@ -122,11 +122,17 @@ function ejecutarValidacion(codigo) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}',
         },
         body: JSON.stringify({ codigo_qr: codigo })
     })
     .then(async response => {
-        const data = await response.json();
+        let data = {};
+        try {
+            data = await response.json();
+        } catch (e) {
+            data = { motivo: 'Error en respuesta del servidor' };
+        }
         contenedor.classList.remove('d-none');
 
         if (response.ok && data.acceso_concedido) {
@@ -146,7 +152,7 @@ function ejecutarValidacion(codigo) {
             icono.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i>';
             titulo.className = 'fw-bold my-2 text-danger';
             titulo.innerText = 'ACCESO DENEGADO (TORNIQUETE BLOQUEADO)';
-            motivo.innerText = data.motivo || 'Motivo desconocido';
+            motivo.innerText = data.motivo || data.detail || 'Motivo desconocido';
             socio.innerText = data.socio || 'N/A';
             plan.innerText = data.plan || 'N/A';
             vencimiento.innerText = data.fecha_fin || 'N/A';
