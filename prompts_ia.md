@@ -129,3 +129,14 @@ Se crearon en la carpeta `deploy/` y en la raíz del proyecto:
 **Resultado:**
 - Se condicionó la visualización del botón de Django Admin en `Templates/base.html` con la directiva `{% if user.is_authenticated and user.is_staff %}`.
 - De esta manera, los usuarios anónimos y socios regulares (`juan.activo`, `maria.congelada`, etc.) no ven el enlace al panel administrativo, preservando el principio de seguridad por rol y dejando el acceso visible únicamente al superusuario `admin`.
+
+
+---
+
+## 12. Optimización del Control de Aforo con Conteo de Socios Únicos
+**Prompt solicitado a la IA:**
+"Si un mismo socio escanea varias veces su código QR, los ingresos se acumulaban inflando el aforo; modifica la lógica para que el aforo en sala conserve y cuente únicamente a cada socio una sola vez (IDs únicos)."
+
+**Resultado:**
+- Se actualizó el cálculo de `aforo_actual` en `dashboard_view` y `DashboardAforoApiView` agregando `.values('membresia__usuario').distinct().count()`.
+- Ahora, sin importar cuántas veces pase su QR un socio en la ventana reciente, en el aforo físico de las instalaciones cuenta estrictamente como 1 persona presente.

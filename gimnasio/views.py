@@ -77,11 +77,11 @@ def dashboard_view(request):
     ahora = timezone.now()
     hace_dos_horas = ahora - timedelta(hours=2)
 
-    # Accesos concedidos en la ventana reciente (estimación de permanencia en sala)
+    # Accesos concedidos en la ventana reciente (personas únicas actualmente en sala)
     aforo_actual = RegistroAcceso.objects.filter(
         fecha_hora__gte=hace_dos_horas,
         acceso_concedido=True
-    ).count()
+    ).values('membresia__usuario').distinct().count()
 
     # Métricas del día actual
     accesos_hoy = RegistroAcceso.objects.filter(
@@ -522,10 +522,11 @@ class DashboardAforoApiView(APIView):
         hoy = timezone.localdate()
         hace_dos_horas = timezone.now() - timedelta(hours=2)
 
+        # Aforo actual: personas únicas presentes en sala
         aforo_actual = RegistroAcceso.objects.filter(
             fecha_hora__gte=hace_dos_horas,
             acceso_concedido=True
-        ).count()
+        ).values('membresia__usuario').distinct().count()
 
         accesos_hoy = RegistroAcceso.objects.filter(
             fecha_hora__date=hoy,
