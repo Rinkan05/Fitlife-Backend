@@ -140,3 +140,14 @@ Se crearon en la carpeta `deploy/` y en la raíz del proyecto:
 **Resultado:**
 - Se actualizó el cálculo de `aforo_actual` en `dashboard_view` y `DashboardAforoApiView` agregando `.values('membresia__usuario').distinct().count()`.
 - Ahora, sin importar cuántas veces pase su QR un socio en la ventana reciente, en el aforo físico de las instalaciones cuenta estrictamente como 1 persona presente.
+
+
+---
+
+## 13. Restricción del Panel de Pruebas de Torniquete por Roles
+**Prompt solicitado a la IA:**
+"En el simulador de torniquete, los socios regulares podían ver y simular los códigos QR de los demás usuarios; oculta las tarjetas de prueba rápida para socios normales y déjalas visibles únicamente para el administrador, permitiendo a los socios normales escanear solo su propio código QR."
+
+**Resultado:**
+- En `Templates/simulador_acceso.html`, se encapsuló la lista de membresías de prueba dentro de `{% if user.is_authenticated and user.is_staff %}`.
+- Para socios regulares autenticados, se dispuso un botón personal exclusivo (`Escanear Mi Carnet`) que valida únicamente su propio `user.membresia.codigo_qr`, impidiendo que un usuario suplante a otros en el simulador.

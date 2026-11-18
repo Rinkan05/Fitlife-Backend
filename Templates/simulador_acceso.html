@@ -47,9 +47,13 @@
             </div>
         </div>
 
-        <!-- ACCESOS RÁPIDOS DE PRUEBA -->
+        <!-- ACCESOS RÁPIDOS DE PRUEBA (SOLO ADMINISTRADORES / STAFF) -->
+        {% if user.is_authenticated and user.is_staff %}
         <div class="card card-custom p-4">
-            <h5 class="fw-bold mb-3"><i class="bi bi-lightning-charge text-warning"></i> Membresías de Prueba Rápida</h5>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-shield-lock-fill text-warning"></i> Membresías de Prueba (Exclusivo Administrador)</h5>
+                <span class="badge bg-warning text-dark"><i class="bi bi-person-badge"></i> Modo Admin</span>
+            </div>
             <p class="small text-muted mb-3">Haz clic en cualquier socio registrado para probar directamente el comportamiento según su estado:</p>
 
             <div class="list-group">
@@ -79,6 +83,18 @@
                 {% endfor %}
             </div>
         </div>
+        {% elif user.is_authenticated and user.membresia %}
+        <!-- ACCESO RÁPIDO PERSONAL PARA EL SOCIO LOGUEADO -->
+        <div class="card card-custom p-4 text-center">
+            <h5 class="fw-bold mb-2"><i class="bi bi-qr-code text-primary"></i> Tu Código QR de Acceso</h5>
+            <p class="small text-muted mb-3">Simula pasar tu carnet personal por el sensor del torniquete físico:</p>
+            <div>
+                <button type="button" class="btn btn-outline-primary px-4 py-2 fw-bold" onclick="cargarYValidar('{{ user.membresia.codigo_qr }}')">
+                    <i class="bi bi-upc-scan me-1"></i> Escanear Mi Carnet ({{ user.get_full_name|default:user.username }})
+                </button>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
