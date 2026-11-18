@@ -10,22 +10,23 @@
 
 ## 🌐 Enlaces de Acceso en Producción (AWS EC2)
 
-* **URL Principal de la Aplicación (IP Pública / DNS):**  
-  `http://<TU_IP_PUBLICA_O_ELASTICA>/` o `https://<TU_SUBDOMINIO>.duckdns.org/`
+* **URL Principal en Producción (Dominio Seguro con SSL):**  
+  [https://fitlife-inacap.duckdns.org/](https://fitlife-inacap.duckdns.org/)  
+  *(Respaldo por IP Elástica: `http://32.192.112.28/`)*
 * **Panel de Administración (Django Admin):**  
-  `http://<TU_IP_PUBLICA_O_ELASTICA>/admin/`  
+  [https://fitlife-inacap.duckdns.org/admin/](https://fitlife-inacap.duckdns.org/admin/)  
   * **Usuario Administrador:** `admin`  
   * **Contraseña:** `admin123`
-* **Simulador de Torniquete y Lector QR:**  
-  `http://<TU_IP_PUBLICA_O_ELASTICA>/simulador-acceso/`
+* **Simulador de Torniquete y Lector QR (Baja Latencia):**  
+  [https://fitlife-inacap.duckdns.org/simulador-acceso/](https://fitlife-inacap.duckdns.org/simulador-acceso/)
 * **Control de Aforo en Tiempo Real:**  
-  `http://<TU_IP_PUBLICA_O_ELASTICA>/`
+  [https://fitlife-inacap.duckdns.org/](https://fitlife-inacap.duckdns.org/)
 * **Catálogo de Planes y Pago Webpay Plus:**  
-  `http://<TU_IP_PUBLICA_O_ELASTICA>/planes/`
-* **Reserva de Clases Grupales:**  
-  `http://<TU_IP_PUBLICA_O_ELASTICA>/clases/`
+  [https://fitlife-inacap.duckdns.org/planes/](https://fitlife-inacap.duckdns.org/planes/)
+* **Reserva de Clases Grupales y Lista de Espera:**  
+  [https://fitlife-inacap.duckdns.org/clases/](https://fitlife-inacap.duckdns.org/clases/)
 * **Endpoints API REST (DRF):**  
-  `http://<TU_IP_PUBLICA_O_ELASTICA>/api/`
+  [https://fitlife-inacap.duckdns.org/api/](https://fitlife-inacap.duckdns.org/api/)
 
 ---
 
