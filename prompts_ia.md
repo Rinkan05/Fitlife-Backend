@@ -118,3 +118,14 @@ Se crearon en la carpeta `deploy/` y en la raíz del proyecto:
 - Se actualizó `deploy/nginx_fitlife.conf` con soporte para el subdominio `.duckdns.org`.
 - Se configuró `CSRF_TRUSTED_ORIGINS` y `ALLOWED_HOSTS` en `core/settings.py` para permitir peticiones seguras desde subdominios de DuckDNS y la pasarela de Transbank.
 - Se expandió `deploy/README_AWS_EC2.md` con las instrucciones detalladas de vinculación de IP y emisión de certificados SSL con Certbot.
+
+
+---
+
+## 11. Restricción de Visibilidad del Acceso a Django Admin por Roles
+**Prompt solicitado a la IA:**
+"El acceso directo al Django Admin se puede ver por cualquiera en la barra de navegación; ocúltalo para todos los usuarios y déjalo visible exclusivamente para usuarios administradores (staff/superuser)."
+
+**Resultado:**
+- Se condicionó la visualización del botón de Django Admin en `Templates/base.html` con la directiva `{% if user.is_authenticated and user.is_staff %}`.
+- De esta manera, los usuarios anónimos y socios regulares (`juan.activo`, `maria.congelada`, etc.) no ven el enlace al panel administrativo, preservando el principio de seguridad por rol y dejando el acceso visible únicamente al superusuario `admin`.
