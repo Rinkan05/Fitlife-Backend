@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}Simulador de Lector QR y Torniquete - FitLife{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card card-custom p-4 mb-4">
+            <div class="text-center mb-4">
+                <i class="bi bi-upc-scan text-primary" style="font-size: 3rem;"></i>
+                <h3 class="fw-bold mt-2">Simulador de Acceso Físico (Torniquete / Lector QR)</h3>
+                <p class="text-muted">Validación instantánea de baja latencia contra el endpoint REST <code>/api/acceso/escanear-qr/</code></p>
+            </div>
+
+            <!-- FORMULARIO DE ESCANEO -->
+            <form id="formEscaner" onsubmit="validarQR(event)">
+                <div class="mb-3">
+                    <label for="codigoInput" class="form-label fw-bold">Código QR del Socio (UUID)</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-qr-code"></i></span>
+                        <input 
+                            type="text" 
+                            class="form-control font-monospace" 
+                            id="codigoInput" 
+                            placeholder="Ej: 550e8400-e29b-41d4-a716-446655440000" 
+                            required
+                        >
+                        <button class="btn btn-primary px-4 fw-bold" type="submit" id="btnEscanear">
+                            <i class="bi bi-play-circle me-1"></i> Validar Acceso
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- RESULTADO VISUAL INMEDIATO -->
+            <div id="resultadoAcceso" class="d-none mt-4 p-4 rounded text-center border">
+                <div id="iconoResultado" style="font-size: 4rem;"></div>
+                <h2 id="tituloResultado" class="fw-bold my-2"></h2>
+                <h5 id="motivoResultado" class="text-muted mb-3"></h5>
+
+                <div class="row g-2 justify-content-center small text-start bg-white p-3 rounded border mx-auto" style="max-width: 480px;">
+                    <div class="col-6"><strong>Socio:</strong> <span id="socioResultado"></span></div>
+                    <div class="col-6"><strong>Plan:</strong> <span id="planResultado"></span></div>
+                    <div class="col-6 mt-2"><strong>Vencimiento:</strong> <span id="vencimientoResultado"></span></div>
+                    <div class="col-6 mt-2"><strong>Latencia:</strong> <span id="latenciaResultado" class="badge bg-dark"></span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACCESOS RÁPIDOS DE PRUEBA -->
+        <div class="card card-custom p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-lightning-charge text-warning"></i> Membresías de Prueba Rápida</h5>
+            <p class="small text-muted mb-3">Haz clic en cualquier socio registrado para probar directamente el comportamiento según su estado:</p>
+
+            <div class="list-group">
+                {% for m in membresias_ejemplo %}
+                <button 
+                    type="button" 
+                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    onclick="cargarYValidar('{{ m.codigo_qr }}')"
+                >
+                    <div>
+                        <strong>{{ m.usuario.get_full_name|default:m.usuario.username }}</strong>
+                        <small class="text-muted d-block">Plan: {{ m.plan.nombre }} | Vence: {{ m.fecha_fin|date:"d/m/Y" }}</small>
+                    </div>
+                    <div>
+                        {% if m.estado == 'Activa' %}
+                            <span class="badge bg-success">Activa</span>
+                        {% elif m.estado == 'Congelada' %}
+                            <span class="badge bg-warning text-dark">Congelada</span>
+                        {% else %}
+                            <span class="badge bg-danger">Vencida</span>
+                        {% endif %}
+                        <i class="bi bi-chevron-right ms-2 text-muted"></i>
+                    </div>
+                </button>
+                {% empty %}
+                <div class="text-muted small text-center py-3">No hay membresías creadas aún. Crea una desde el <a href="/admin/">Django Admin</a>.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-cargar código desde parámetro de URL si existe (?codigo=...)
+window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const codigoParam = urlParams.get('codigo');
+    if (codigoParam) {
+        document.getElementById('codigoInput').value = codigoParam;
+        ejecutarValidacion(codigoParam);
+    }
+});
+
+function cargarYValidar(codigo) {
+    document.getElementById('codigoInput').value = codigo;
+    ejecutarValidacion(codigo);
+}
+
+function validarQR(event) {
+    event.preventDefault();
+    const codigo = document.getElementById('codigoInput').value.trim();
+    if (codigo) {
+        ejecutarValidacion(codigo);
+    }
+}
+
+function ejecutarValidacion(codigo) {
+    const contenedor = document.getElementById('resultadoAcceso');
+    const icono = document.getElementById('iconoResultado');
+    const titulo = document.getElementById('tituloResultado');
+    const motivo = document.getElementById('motivoResultado');
+    const socio = document.getElementById('socioResultado');
+    const plan = document.getElementById('planResultado');
+    const vencimiento = document.getElementById('vencimientoResultado');
+    const latencia = document.getElementById('latenciaResultado');
+
+    fetch('/api/acceso/escanear-qr/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ codigo_qr: codigo })
+    })
+    .then(async response => {
+        const data = await response.json();
+        contenedor.classList.remove('d-none');
+
+        if (response.ok && data.acceso_concedido) {
+            // Acceso CONCEDIDO
+            contenedor.className = 'mt-4 p-4 rounded text-center border border-success bg-success-subtle';
+            icono.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>';
+            titulo.className = 'fw-bold my-2 text-success';
+            titulo.innerText = 'ACCESO CONCEDIDO (TORNIQUETE ABIERTO)';
+            motivo.innerText = data.motivo;
+            socio.innerText = data.socio;
+            plan.innerText = data.plan;
+            vencimiento.innerText = data.fecha_fin;
+            latencia.innerText = data.latencia_ms + ' ms';
+        } else {
+            // Acceso DENEGADO
+            contenedor.className = 'mt-4 p-4 rounded text-center border border-danger bg-danger-subtle';
+            icono.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i>';
+            titulo.className = 'fw-bold my-2 text-danger';
+            titulo.innerText = 'ACCESO DENEGADO (TORNIQUETE BLOQUEADO)';
+            motivo.innerText = data.motivo || 'Motivo desconocido';
+            socio.innerText = data.socio || 'N/A';
+            plan.innerText = data.plan || 'N/A';
+            vencimiento.innerText = data.fecha_fin || 'N/A';
+            latencia.innerText = (data.latencia_ms || 0) + ' ms';
+        }
+    })
+    .catch(err => {
+        alert('Error en conexión con el torniquete: ' + err);
+    });
+}
+</script>
+{% endblock %}
+

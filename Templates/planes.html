@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Planes y Membresías - FitLife{% endblock %}
+
+{% block content %}
+<div class="text-center mb-4">
+    <h2 class="fw-bold mb-2">Planes de Membresía FitLife</h2>
+    <p class="text-muted">Elige el plan ideal para tus objetivos deportivos y entrena con el mejor equipamiento</p>
+</div>
+
+<!-- BANNER DE AYUDA CON TARJETAS DE PRUEBA TRANSBANK -->
+<div class="alert alert-info border-info shadow-sm mb-4">
+    <div class="d-flex align-items-center gap-2 mb-1">
+        <i class="bi bi-info-circle-fill fs-5 text-info"></i>
+        <strong class="fs-6">Datos de Tarjeta Oficial para Pruebas en Webpay (Ambiente de Integración):</strong>
+    </div>
+    <div class="row g-2 mt-1 small">
+        <div class="col-md-4">
+            <span class="text-muted">Tarjeta de Crédito (Aprobada):</span><br>
+            <strong class="font-monospace text-primary fs-6">4051 8856 0044 6623</strong>
+        </div>
+        <div class="col-md-4">
+            <span class="text-muted">Vencimiento y CVV:</span><br>
+            <strong>Cualquier fecha futura (ej: 12/28)</strong> | CVV: <strong>123</strong>
+        </div>
+        <div class="col-md-4">
+            <span class="text-muted">Clave en Simulación Bancaria:</span><br>
+            RUT: <strong>11.111.111-1</strong> | Clave: <strong>123</strong>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 justify-content-center">
+    {% for plan in planes %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card card-custom h-100 text-center p-4 border-top border-4 border-primary">
+            <h4 class="fw-bold mb-2">{{ plan.nombre }}</h4>
+            <div class="my-3">
+                <span class="display-5 fw-bold text-primary">${{ plan.precio }}</span>
+                <span class="text-muted">/ {{ plan.duracion_dias }} días</span>
+            </div>
+
+            <ul class="list-unstyled my-4 text-start small">
+                <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i> Acceso ilimitado a sala de pesas y cardio</li>
+                <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i> Control de acceso digital vía Código QR</li>
+                <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i> Reserva de clases grupales (Spinning, Yoga, etc.)</li>
+                <li class="mb-2"><i class="bi bi-check2-circle text-success me-2"></i> Duración garantizada: {{ plan.duracion_dias }} días</li>
+            </ul>
+
+            <div class="mt-auto">
+                {% if user.is_authenticated %}
+                <a href="{% url 'iniciar_pago_membresia' plan.id %}" class="btn btn-danger w-100 fw-bold shadow-sm py-2">
+                    <i class="bi bi-credit-card-2-front-fill me-1"></i> Pagar con Webpay Plus
+                </a>
+                {% else %}
+                <a href="{% url 'login' %}?next={% url 'planes' %}" class="btn btn-primary w-100 fw-bold py-2">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión para Pagar
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <h5 class="text-muted">No hay planes registrados todavía. Agrégalos desde el Django Admin.</h5>
+        <a href="/admin/gimnasio/plan/add/" class="btn btn-primary mt-3">Crear Primer Plan</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+

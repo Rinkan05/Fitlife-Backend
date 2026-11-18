@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard de Aforo en Tiempo Real - FitLife{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-speedometer2 text-primary"></i> Control de Aforo en Tiempo Real</h2>
+        <p class="text-muted mb-0">Monitoreo continuo de ocupación en instalaciones y auditoría de accesos</p>
+    </div>
+    <div>
+        <span class="badge bg-success p-2 fs-6">
+            <i class="bi bi-broadcast"></i> En Vivo (Actualización cada 5s)
+        </span>
+    </div>
+</div>
+
+<!-- TARJETAS DE INDICADORES CLAVE -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card card-custom p-3 text-center border-start border-primary border-4">
+            <span class="text-muted small fw-semibold">AFORO EN SALA</span>
+            <h1 class="fw-bold my-1 text-primary" id="contadorAforo">{{ aforo_actual }}</h1>
+            <small class="text-secondary">de {{ capacidad_maxima }} personas permitidas</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-custom p-3 text-center border-start border-info border-4">
+            <span class="text-muted small fw-semibold">% OCUPACIÓN ACTUAL</span>
+            <h1 class="fw-bold my-1 text-info" id="porcentajeOcupacion">{{ porcentaje_ocupacion }}%</h1>
+            <small class="text-secondary">Capacidad operativa</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-custom p-3 text-center border-start border-success border-4">
+            <span class="text-muted small fw-semibold">ACCESOS EXITOSOS HOY</span>
+            <h1 class="fw-bold my-1 text-success" id="accesosHoy">{{ accesos_hoy }}</h1>
+            <small class="text-secondary">Ingresos validados</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-custom p-3 text-center border-start border-danger border-4">
+            <span class="text-muted small fw-semibold">RECHAZADOS / DENEGADOS</span>
+            <h1 class="fw-bold my-1 text-danger" id="denegadosHoy">{{ denegados_hoy }}</h1>
+            <small class="text-secondary">Vencidos o congelados</small>
+        </div>
+    </div>
+</div>
+
+<!-- BARRA DE PROGRESO DE AFORO -->
+<div class="card card-custom p-4 mb-4">
+    <h5 class="fw-bold mb-3"><i class="bi bi-bar-chart-steps"></i> Nivel de Capacidad del Recinto</h5>
+    <div class="progress" style="height: 28px; border-radius: 14px;">
+        <div 
+            id="barraProgreso" 
+            class="progress-bar {% if porcentaje_ocupacion > 85 %}bg-danger{% elif porcentaje_ocupacion > 60 %}bg-warning text-dark{% else %}bg-success{% endif %} progress-bar-striped progress-bar-animated fw-bold fs-6" 
+            role="progressbar" 
+            style="width: {{ porcentaje_ocupacion }}%;" 
+            aria-valuenow="{{ porcentaje_ocupacion }}" 
+            aria-valuemin="0" 
+            aria-valuemax="100">
+            {{ porcentaje_ocupacion }}%
+        </div>
+    </div>
+    <div class="d-flex justify-content-between mt-2 text-muted small">
+        <span>0 personas (Vacío)</span>
+        <span>Umbral de Seguridad: {{ capacidad_maxima }} personas</span>
+    </div>
+</div>
+
+<!-- TABLA DE AUDITORÍA EN TIEMPO REAL -->
+<div class="card card-custom p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-clock-history"></i> Últimos Registros de Acceso Físico</h5>
+        <a href="{% url 'simulador_acceso' %}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-upc-scan"></i> Ir a Simulador de Torniquete
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Hora</th>
+                    <th>Socio</th>
+                    <th>Plan</th>
+                    <th>Estado de Acceso</th>
+                    <th>Observación / Motivo</th>
+                </tr>
+            </thead>
+            <tbody id="tablaAccesos">
+                {% for acc in ultimos_accesos %}
+                <tr>
+                    <td><strong>{{ acc.fecha_hora|date:"H:i:s" }}</strong></td>
+                    <td>{{ acc.membresia.usuario.get_full_name|default:acc.membresia.usuario.username }}</td>
+                    <td><span class="badge bg-secondary">{{ acc.membresia.plan.nombre }}</span></td>
+                    <td>
+                        {% if acc.acceso_concedido %}
+                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> CONCEDIDO</span>
+                        {% else %}
+                            <span class="badge bg-danger"><i class="bi bi-x-circle"></i> DENEGADO</span>
+                        {% endif %}
+                    </td>
+                    <td><small class="text-muted">{{ acc.motivo|default:"-" }}</small></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">Aún no hay registros de acceso en el sistema hoy.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Sondeo en tiempo real cada 5 segundos al endpoint DRF /api/dashboard/aforo/
+function actualizarDashboard() {
+    fetch('/api/dashboard/aforo/')
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('contadorAforo').innerText = data.aforo_actual;
+            document.getElementById('porcentajeOcupacion').innerText = data.porcentaje_ocupacion + '%';
+            document.getElementById('accesosHoy').innerText = data.accesos_hoy;
+            document.getElementById('denegadosHoy').innerText = data.accesos_denegados_hoy;
+
+            const barra = document.getElementById('barraProgreso');
+            barra.style.width = data.porcentaje_ocupacion + '%';
+            barra.innerText = data.porcentaje_ocupacion + '%';
+
+            barra.className = 'progress-bar progress-bar-striped progress-bar-animated fw-bold fs-6';
+            if (data.porcentaje_ocupacion > 85) {
+                barra.classList.add('bg-danger');
+            } else if (data.porcentaje_ocupacion > 60) {
+                barra.classList.add('bg-warning', 'text-dark');
+            } else {
+                barra.classList.add('bg-success');
+            }
+        })
+        .catch(err => console.log('Sondeo aforo:', err));
+}
+setInterval(actualizarDashboard, 5000);
+</script>
+{% endblock %}
+

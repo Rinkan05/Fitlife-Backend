@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Pago Exitoso - FitLife{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+        <div class="card card-custom p-4 shadow-sm border-top border-5 border-success">
+            <div class="text-center mb-4">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                <h2 class="fw-bold text-success mt-2">¡Pago Aprobado!</h2>
+                <p class="text-muted small">Tu suscripción ha sido activada exitosamente a través de Transbank Webpay Plus.</p>
+            </div>
+
+            <!-- COMPROBANTE DE PAGO TIPO VOUCHER -->
+            <div class="bg-light p-4 rounded border mb-4">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                    <span class="text-muted small">Orden de Compra</span>
+                    <strong class="font-monospace text-dark">{{ pago.orden_compra }}</strong>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                    <span class="text-muted small">Plan Contratado</span>
+                    <strong>{{ plan.nombre }}</strong>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                    <span class="text-muted small">Monto Total Pagado</span>
+                    <strong class="fs-5 text-primary">${{ pago.monto }}</strong>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                    <span class="text-muted small">Código de Autorización</span>
+                    <span class="badge bg-dark font-monospace">{{ cod_autorizacion }}</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                    <span class="text-muted small">Tarjeta Bancaria</span>
+                    <span>**** **** **** {{ ultimos_cuatro }}</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Vigencia de Membresía</span>
+                    <span class="badge bg-success">Hasta {{ membresia.fecha_fin|date:"d/m/Y" }}</span>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <a href="{% url 'mi_membresia' %}" class="btn btn-primary btn-lg fw-bold">
+                    <i class="bi bi-qr-code me-1"></i> Ver Mi Carnet y Código QR
+                </a>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-house me-1"></i> Ir al Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,22 @@
+[Unit]
+Description=Gunicorn daemon para FitLife Backend (Django + DRF)
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/fitlife-backend
+EnvironmentFile=/home/ubuntu/fitlife-backend/.env
+ExecStart=/home/ubuntu/fitlife-backend/venv/bin/gunicorn \
+          --access-logfile /home/ubuntu/fitlife-backend/gunicorn-access.log \
+          --error-logfile /home/ubuntu/fitlife-backend/gunicorn-error.log \
+          --workers 3 \
+          --bind unix:/home/ubuntu/fitlife-backend/fitlife.sock \
+          core.wsgi:application
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+

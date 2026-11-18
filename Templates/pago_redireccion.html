@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Redirigiendo a Transbank Webpay Plus...{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height: 60vh;">
+    <div class="col-md-6 col-lg-5 text-center">
+        <div class="card card-custom p-5 shadow">
+            <div class="spinner-border text-danger mb-4" style="width: 3.5rem; height: 3.5rem;" role="status">
+                <span class="visually-hidden">Cargando pasarela...</span>
+            </div>
+
+            <h3 class="fw-bold mb-2">Conectando con Transbank</h3>
+            <p class="text-muted small mb-4">Te estamos transfiriendo a la pasarela segura de Webpay Plus para pagar <strong>{{ plan.nombre }}</strong> (${{ monto }}).</p>
+
+            <!-- FORMULARIO AUTO-SUBMIT A WEBPAY -->
+            <form id="webpayForm" action="{{ url_webpay }}" method="POST">
+                <input type="hidden" name="token_ws" value="{{ token_ws }}">
+                <noscript>
+                    <p class="text-warning small">Si la página no carga automáticamente, presiona el siguiente botón:</p>
+                    <button type="submit" class="btn btn-danger fw-bold w-100 py-2">
+                        Continuar a Webpay Plus
+                    </button>
+                </noscript>
+            </form>
+
+            <div class="d-flex justify-content-center align-items-center gap-2 text-muted small mt-2">
+                <i class="bi bi-shield-lock-fill text-success"></i> Transacción protegida por Transbank Webpay
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Envío automático del formulario a Webpay Plus
+    window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            document.getElementById('webpayForm').submit();
+        }, 800);
+    });
+</script>
+{% endblock %}
+

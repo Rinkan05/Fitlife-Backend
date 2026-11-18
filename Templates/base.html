@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FitLife - Gestión Integral de Gimnasio{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --fitlife-primary: #ff5722;
+            --fitlife-dark: #1a1a24;
+            --fitlife-accent: #00e676;
+        }
+        body {
+            background-color: #f4f6f9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar-fitlife {
+            background-color: var(--fitlife-dark);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        }
+        .brand-logo {
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #fff !important;
+        }
+        .brand-logo span {
+            color: var(--fitlife-primary);
+        }
+        .nav-link {
+            font-weight: 500;
+            color: rgba(255,255,255,0.8) !important;
+            transition: color 0.2s;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: var(--fitlife-primary) !important;
+        }
+        .footer {
+            margin-top: auto;
+            background-color: var(--fitlife-dark);
+            color: #aaa;
+            padding: 20px 0;
+            font-size: 0.9rem;
+        }
+        .card-custom {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            transition: transform 0.2s;
+        }
+        .badge-activa { background-color: #28a745; }
+        .badge-vencida { background-color: #dc3545; }
+        .badge-congelada { background-color: #ffc107; color: #212529; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-fitlife sticky-top">
+        <div class="container">
+            <a class="navbar-brand brand-logo" href="{% url 'dashboard' %}">
+                <i class="bi bi-activity"></i> FIT<span>LIFE</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarFitlife">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarFitlife">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard Aforo</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'clases' %}"><i class="bi bi-calendar-event"></i> Clases Grupales</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'mi_membresia' %}"><i class="bi bi-qr-code"></i> Mi Membresía & QR</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'simulador_acceso' %}"><i class="bi bi-upc-scan"></i> Simulador Torniquete</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'planes' %}"><i class="bi bi-tags"></i> Planes</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="/admin/" target="_blank" class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-shield-lock"></i> Django Admin
+                    </a>
+                    {% if user.is_authenticated %}
+                        <div class="dropdown">
+                            <button class="btn btn-dark btn-sm dropdown-toggle border" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle"></i> {{ user.username }}
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                                <li><a class="dropdown-item" href="{% url 'mi_membresia' %}"><i class="bi bi-person"></i> Mi Perfil</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MENSAJES DJANGO -->
+    <div class="container mt-3">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm" role="alert">
+                    {% if message.tags == 'success' %}<i class="bi bi-check-circle-fill me-2"></i>{% endif %}
+                    {% if message.tags == 'warning' %}<i class="bi bi-exclamation-triangle-fill me-2"></i>{% endif %}
+                    {% if message.tags == 'error' or message.tags == 'danger' %}<i class="bi bi-x-circle-fill me-2"></i>{% endif %}
+                    {% if message.tags == 'info' %}<i class="bi bi-info-circle-fill me-2"></i>{% endif %}
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="container my-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer text-center">
+        <div class="container">
+            <p class="mb-0">FitLife Backend & API &copy; 2026 - Plataforma de Gestión de Gimnasio (Django + DRF + PostgreSQL)</p>
+            <small class="text-secondary">Desarrollo Académico - Evaluación Backend</small>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

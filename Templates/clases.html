@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Clases Grupales - FitLife{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-calendar-event text-primary"></i> Clases Grupales</h2>
+        <p class="text-muted mb-0">Reserva tu cupo en tiempo real. Si la clase se llena, ingresarás a la Lista de Espera con promoción automática.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for item in clases_data %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card card-custom h-100 p-3 border-top border-4 {% if item.disponibles > 0 %}border-success{% else %}border-warning{% endif %}">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h4 class="card-title fw-bold mb-0">{{ item.clase.nombre }}</h4>
+                    {% if item.disponibles > 0 %}
+                        <span class="badge bg-success">Cupos Disponibles</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">Clase Llena</span>
+                    {% endif %}
+                </div>
+
+                <p class="text-muted mb-2"><i class="bi bi-person-fill text-secondary"></i> Instructor: <strong>{{ item.clase.instructor }}</strong></p>
+                <p class="text-muted mb-3"><i class="bi bi-clock-fill text-secondary"></i> Fecha y Hora: <strong>{{ item.clase.fecha_hora|date:"d/m/Y H:i" }} hrs</strong></p>
+
+                <!-- ESTADO DE CUPOS -->
+                <div class="bg-light p-3 rounded mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small fw-semibold">Ocupación:</span>
+                        <span class="small fw-bold">{{ item.confirmadas }}/{{ item.cupo_maximo }} cupos</span>
+                    </div>
+                    <div class="progress mb-2" style="height: 10px;">
+                        <div class="progress-bar {% if item.disponibles == 0 %}bg-danger{% else %}bg-primary{% endif %}" 
+                             style="width: {% widthratio item.confirmadas item.cupo_maximo 100 %}%;"></div>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>Disponibles: <strong class="text-success">{{ item.disponibles }}</strong></span>
+                        <span>En Espera: <strong class="text-info">{{ item.en_lista_espera }}</strong></span>
+                    </div>
+                </div>
+
+                <!-- ACCIONES DE RESERVA -->
+                <div class="mt-auto">
+                    {% if item.reserva_propia %}
+                        <div class="alert {% if item.reserva_propia.estado == 'Confirmada' %}alert-success{% elif item.reserva_propia.estado == 'Espera' %}alert-info{% else %}alert-secondary{% endif %} py-2 px-3 mb-2 small text-center fw-bold">
+                            <i class="bi bi-info-circle"></i> Tu Estado: {{ item.reserva_propia.get_estado_display }}
+                        </div>
+
+                        {% if item.reserva_propia.estado != 'Cancelada' %}
+                        <form method="POST" action="{% url 'cancelar_reserva' item.reserva_propia.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger w-100 btn-sm">
+                                <i class="bi bi-x-circle"></i> Cancelar mi Reserva
+                            </button>
+                        </form>
+                        {% endif %}
+                    {% else %}
+                        <form method="POST" action="{% url 'reservar_clase' item.clase.id %}">
+                            {% csrf_token %}
+                            {% if item.disponibles > 0 %}
+                                <button type="submit" class="btn btn-primary w-100 fw-bold">
+                                    <i class="bi bi-calendar-plus"></i> Reservar Cupo
+                                </button>
+                            {% else %}
+                                <button type="submit" class="btn btn-outline-warning text-dark w-100 fw-bold">
+                                    <i class="bi bi-hourglass-split"></i> Entrar a Lista de Espera
+                                </button>
+                            {% endif %}
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+        <h4 class="mt-3 text-muted">No hay clases grupales programadas próximamente.</h4>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
