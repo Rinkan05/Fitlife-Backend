@@ -1,5 +1,9 @@
 from django.urls import path, include, re_path
 from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 from .views import (
     # Vistas de autenticación y templates
     login_view,
@@ -13,6 +17,7 @@ from .views import (
     planes_catalogo_view,
     iniciar_pago_membresia_view,
     retorno_pago_webpay_view,
+    api_cliente_view,
     pagina_no_encontrada_view,
     # Endpoints API de baja latencia y dashboard
     ValidarAccesoQRApiView,
@@ -49,10 +54,15 @@ urlpatterns = [
     # Pasarela de pagos con Transbank Webpay Plus
     path('pago/iniciar/<int:plan_id>/', iniciar_pago_membresia_view, name='iniciar_pago_membresia'),
     path('pago/retorno/', retorno_pago_webpay_view, name='retorno_pago_webpay'),
+    # Consola cliente REST API & JWT (Evaluación 4)
+    path('api-cliente/', api_cliente_view, name='api_cliente'),
 
     # -------------------------------------------------------------------------
-    # 2. ENDPOINTS ESPECIALIZADOS DE LA API REST
+    # 2. ENDPOINTS ESPECIALIZADOS DE LA API REST Y AUTENTICACIÓN JWT
     # -------------------------------------------------------------------------
+    # Autenticación JWT (SimpleJWT)
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     # Validación y registro de código QR en milisegundos para torniquetes físicos
     path('api/acceso/escanear-qr/', ValidarAccesoQRApiView.as_view(), name='api_escanear_qr'),
     # Datos de aforo en vivo para dashboards y clientes externos

@@ -582,7 +582,21 @@ class RegistroAccesoViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 # ==============================================================================
-# 5. MITIGACIÓN DE RUTAS INEXISTENTES (CUSTOM 404 VIEW)
+# 5. CONSOLA CLIENTE API REST & JWT (ACTIVIDAD 1 & 2 - EVALUACIÓN 4)
+# ==============================================================================
+
+def api_cliente_view(request):
+    """
+    Interfaz web interactiva que consume la API REST de FitLife mediante JavaScript:
+    - Generación y refresco de tokens JWT (SimpleJWT).
+    - Ejecución de operaciones CRUD autenticadas con Authorization: Bearer <token>.
+    - Visualización en tiempo real de peticiones, códigos de estado y respuestas JSON.
+    """
+    return render(request, 'api_cliente.html')
+
+
+# ==============================================================================
+# 6. MITIGACIÓN DE RUTAS INEXISTENTES (CUSTOM 404 VIEW)
 # ==============================================================================
 
 def pagina_no_encontrada_view(request, *args, **kwargs):

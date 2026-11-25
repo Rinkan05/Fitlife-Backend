@@ -1,0 +1,513 @@
+{% extends 'base.html' %}
+
+{% block title %}Consola API REST & Autenticación JWT - FitLife{% endblock %}
+
+{% block extra_css %}
+<style>
+    .api-header {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: white;
+        padding: 30px 0;
+        border-radius: 12px;
+        margin-bottom: 25px;
+    }
+    .badge-method-get { background-color: #0d6efd; color: white; font-weight: bold; }
+    .badge-method-post { background-color: #198754; color: white; font-weight: bold; }
+    .badge-method-put { background-color: #ffc107; color: black; font-weight: bold; }
+    .badge-method-delete { background-color: #dc3545; color: white; font-weight: bold; }
+    .token-display {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.85rem;
+        word-break: break-all;
+        background-color: #0f172a;
+        color: #38bdf8;
+        padding: 12px;
+        border-radius: 8px;
+        max-height: 120px;
+        overflow-y: auto;
+    }
+    .json-viewer {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.85rem;
+        background-color: #0f172a;
+        color: #a7f3d0;
+        padding: 16px;
+        border-radius: 8px;
+        min-height: 250px;
+        max-height: 520px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+    }
+    .status-badge {
+        font-size: 1rem;
+        padding: 6px 14px;
+        border-radius: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="api-header text-center shadow-sm">
+    <div class="container">
+        <h2 class="fw-bold mb-1"><i class="bi bi-shield-lock-fill text-warning"></i> Consola Cliente REST API & Autenticación JWT</h2>
+        <p class="text-light mb-0 opacity-75">
+            Evaluación N.º 4 – Demostración interactiva de emisión de tokens, renovación y consumo CRUD de endpoints protegidos con cabecera <code class="text-warning">Authorization: Bearer &lt;token&gt;</code>.
+        </p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- COLUMNA IZQUIERDA: GESTIÓN DE AUTENTICACIÓN JWT -->
+    <div class="col-lg-5">
+        <div class="card card-custom h-100 shadow-sm border-0">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="bi bi-key-fill text-warning"></i> 1. Autenticación JWT (SimpleJWT)</span>
+                <span id="jwtStatusBadge" class="badge bg-secondary">Sin Token</span>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">
+                    Obtenga un Access Token (2h) y Refresh Token (7d) enviando credenciales a <code>/api/token/</code>.
+                </p>
+
+                <!-- PRESET DE USUARIOS -->
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-secondary">Cargar credenciales de prueba:</label>
+                    <div class="d-flex flex-wrap gap-1">
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="setCredentials('admin', 'admin123')">
+                            <i class="bi bi-person-fill-gear"></i> admin
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success" onclick="setCredentials('juan.activo', 'socio123')">
+                            <i class="bi bi-person-check-fill"></i> juan.activo
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-warning text-dark" onclick="setCredentials('maria.congelada', 'socio123')">
+                            <i class="bi bi-snow"></i> maria.congelada
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="setCredentials('carlos.vencido', 'socio123')">
+                            <i class="bi bi-person-x-fill"></i> carlos.vencido
+                        </button>
+                    </div>
+                </div>
+
+                <!-- FORMULARIO DE LOGIN JWT -->
+                <div class="row g-2 mb-3">
+                    <div class="col-sm-6">
+                        <label for="jwtUsername" class="form-label small fw-semibold">Usuario:</label>
+                        <input type="text" id="jwtUsername" class="form-control form-control-sm" value="admin" placeholder="Usuario">
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="jwtPassword" class="form-label small fw-semibold">Contraseña:</label>
+                        <input type="password" id="jwtPassword" class="form-control form-control-sm" value="admin123" placeholder="Contraseña">
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mb-3">
+                    <button class="btn btn-primary btn-sm fw-bold shadow-sm" onclick="obtenerTokensJWT()">
+                        <i class="bi bi-box-arrow-in-right"></i> Solicitar Token JWT (POST /api/token/)
+                    </button>
+                </div>
+
+                <!-- CONTENEDOR DE ACCESS TOKEN -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label small fw-bold text-success mb-0">Access Token (Para llamadas API):</label>
+                        <button class="btn btn-link btn-sm p-0 text-decoration-none" onclick="copiarToken('accessTokenDisplay')">
+                            <i class="bi bi-clipboard"></i> Copiar
+                        </button>
+                    </div>
+                    <div id="accessTokenDisplay" class="token-display">No hay Access Token activo</div>
+                </div>
+
+                <!-- CONTENEDOR DE REFRESH TOKEN -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label small fw-bold text-info mb-0">Refresh Token (Para renovación):</label>
+                        <button class="btn btn-link btn-sm p-0 text-decoration-none" onclick="copiarToken('refreshTokenDisplay')">
+                            <i class="bi bi-clipboard"></i> Copiar
+                        </button>
+                    </div>
+                    <div id="refreshTokenDisplay" class="token-display">No hay Refresh Token activo</div>
+                </div>
+
+                <!-- BOTONES DE ACCIÓN PARA TOKENS -->
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-info btn-sm flex-fill" onclick="renovarTokenJWT()">
+                        <i class="bi bi-arrow-clockwise"></i> Renovar Token (POST /api/token/refresh/)
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="limpiarTokens()">
+                        <i class="bi bi-trash"></i> Limpiar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: CONSOLA CRUD REST -->
+    <div class="col-lg-7">
+        <div class="card card-custom h-100 shadow-sm border-0">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="bi bi-hdd-network-fill text-info"></i> 2. Consola de Peticiones HTTP REST</span>
+                <span id="responseStatusBadge" class="badge bg-secondary">Sin Petición</span>
+            </div>
+            <div class="card-body">
+                <!-- SELECTOR DE ENDPOINT Y MÉTODO -->
+                <div class="row g-2 mb-2">
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">Método HTTP:</label>
+                        <select id="httpMethod" class="form-select form-select-sm fw-bold" onchange="actualizarPlantillaPorMetodo()">
+                            <option value="GET" selected>GET</option>
+                            <option value="POST">POST</option>
+                            <option value="PUT">PUT</option>
+                            <option value="PATCH">PATCH</option>
+                            <option value="DELETE">DELETE</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Entidad / Endpoint:</label>
+                        <select id="apiEndpoint" class="form-select form-select-sm" onchange="actualizarPlantillaPorEntidad()">
+                            <option value="/api/planes/">Planes (/api/planes/)</option>
+                            <option value="/api/clases/">Clases Grupales (/api/clases/)</option>
+                            <option value="/api/membresias/">Membresías (/api/membresias/)</option>
+                            <option value="/api/reservas/">Reservas (/api/reservas/)</option>
+                            <option value="/api/registros-acceso/">Registros de Acceso (/api/registros-acceso/)</option>
+                            <option value="/api/dashboard/aforo/">Métricas Aforo (/api/dashboard/aforo/)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">ID Recurso (Opcional):</label>
+                        <input type="number" id="resourceId" class="form-control form-control-sm" placeholder="Ej: 1" oninput="actualizarUrlPreview()">
+                    </div>
+                </div>
+
+                <!-- PREVIEW DE LA URL COMPLETA -->
+                <div class="mb-3">
+                    <label class="form-label small text-muted mb-1">URL a consultar:</label>
+                    <input type="text" id="urlPreview" class="form-control form-control-sm font-monospace bg-light" readonly value="/api/planes/">
+                </div>
+
+                <!-- AUTORIZACIÓN HEADER CHECKBOX -->
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="includeAuthHeader" checked>
+                    <label class="form-check-label small fw-bold" for="includeAuthHeader">
+                        Incluir cabecera <code class="text-primary">Authorization: Bearer &lt;access_token&gt;</code>
+                    </label>
+                    <div class="small text-muted">
+                        <em>(Desmarque esta casilla para comprobar cómo la API responde con <strong class="text-danger">401 Unauthorized</strong> ante peticiones de escritura no autenticadas).</em>
+                    </div>
+                </div>
+
+                <!-- CUERPO DE LA PETICIÓN JSON (PARA POST / PUT) -->
+                <div class="mb-3" id="bodyContainer">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label small fw-semibold mb-0">Cuerpo JSON (Request Body):</label>
+                        <div class="d-flex gap-1">
+                            <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-2" style="font-size: 0.75rem;" onclick="cargarPlantillaPlan()">Plantilla Plan</button>
+                            <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-2" style="font-size: 0.75rem;" onclick="cargarPlantillaClase()">Plantilla Clase</button>
+                            <button type="button" class="btn btn-outline-secondary btn-xs py-0 px-2" style="font-size: 0.75rem;" onclick="document.getElementById('requestBody').value='{}'">Limpiar</button>
+                        </div>
+                    </div>
+                    <textarea id="requestBody" class="form-control form-control-sm font-monospace" rows="4" placeholder="{}"></textarea>
+                </div>
+
+                <!-- BOTÓN DE ENVÍO -->
+                <div class="d-flex gap-2 mb-3">
+                    <button class="btn btn-success btn-sm fw-bold px-4 shadow-sm" onclick="ejecutarPeticionRest()">
+                        <i class="bi bi-send-fill"></i> Ejecutar Petición REST
+                    </button>
+                    <span id="requestLatency" class="align-self-center small text-muted ms-auto"></span>
+                </div>
+
+                <!-- VISOR DE RESPUESTA JSON -->
+                <div class="position-relative">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label small fw-bold mb-0">Respuesta del Servidor (JSON Response):</label>
+                        <button class="btn btn-link btn-sm p-0 text-decoration-none" onclick="copiarToken('jsonResponseViewer')">
+                            <i class="bi bi-clipboard"></i> Copiar Respuesta
+                        </button>
+                    </div>
+                    <div id="jsonResponseViewer" class="json-viewer">// Presione "Ejecutar Petición REST" para consultar el endpoint seleccionado</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECCIÓN ACADÉMICA / JUSTIFICACIÓN TÉCNICA -->
+<div class="card card-custom mt-4 shadow-sm border-0">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-info-circle-fill text-primary"></i> Guía de Evaluación N.º 4: Arquitectura REST & Seguridad JWT</h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="border rounded p-3 h-100 bg-light">
+                    <h6 class="fw-bold text-primary"><i class="bi bi-key"></i> Autenticación Stateless (JWT)</h6>
+                    <p class="small text-muted mb-0">
+                        A diferencia de las sesiones clásicas de Django que guardan el estado en la base de datos o memoria, el token JWT viaja en cada cabecera HTTP de forma <em>stateless</em>. Esto permite que el backend pueda escalar horizontalmente en múltiples instancias EC2 detrás de un balanceador o API Gateway sin compartir memoria de sesiones.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="border rounded p-3 h-100 bg-light">
+                    <h6 class="fw-bold text-success"><i class="bi bi-shield-check"></i> Ciclo de Vida de Tokens</h6>
+                    <p class="small text-muted mb-0">
+                        El <strong>Access Token</strong> tiene una vida útil corta (2 horas) para reducir la ventana de riesgo si es interceptado. El <strong>Refresh Token</strong> (7 días) se almacena de forma segura y solo se envía a <code>/api/token/refresh/</code> para renovar las credenciales sin obligar al usuario a reintroducir su contraseña.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="border rounded p-3 h-100 bg-light">
+                    <h6 class="fw-bold text-warning text-dark"><i class="bi bi-lock"></i> Política de Permisos</h6>
+                    <p class="small text-muted mb-0">
+                        Implementado con <code>IsAuthenticatedOrReadOnly</code>: las operaciones de lectura (<code>GET</code>) son públicas o de consulta segura, mientras que las mutaciones de datos (<code>POST</code>, <code>PUT</code>, <code>PATCH</code>, <code>DELETE</code>) son estrictamente validadas contra la firma criptográfica del JWT.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let globalAccessToken = '';
+    let globalRefreshToken = '';
+
+    function setCredentials(user, pass) {
+        document.getElementById('jwtUsername').value = user;
+        document.getElementById('jwtPassword').value = pass;
+    }
+
+    function copiarToken(elementId) {
+        const text = document.getElementById(elementId).innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('¡Copiado al portapapeles!');
+        }).catch(err => {
+            console.error('Error al copiar:', err);
+        });
+    }
+
+    function limpiarTokens() {
+        globalAccessToken = '';
+        globalRefreshToken = '';
+        document.getElementById('accessTokenDisplay').innerText = 'No hay Access Token activo';
+        document.getElementById('refreshTokenDisplay').innerText = 'No hay Refresh Token activo';
+        const badge = document.getElementById('jwtStatusBadge');
+        badge.className = 'badge bg-secondary';
+        badge.innerText = 'Sin Token';
+    }
+
+    async function obtenerTokensJWT() {
+        const username = document.getElementById('jwtUsername').value.trim();
+        const password = document.getElementById('jwtPassword').value.trim();
+        const badge = document.getElementById('jwtStatusBadge');
+
+        if (!username || !password) {
+            alert('Por favor ingrese usuario y contraseña');
+            return;
+        }
+
+        badge.className = 'badge bg-warning text-dark';
+        badge.innerText = 'Autenticando...';
+
+        try {
+            const resp = await fetch('/api/token/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await resp.json();
+
+            if (resp.ok) {
+                globalAccessToken = data.access;
+                globalRefreshToken = data.refresh;
+                document.getElementById('accessTokenDisplay').innerText = data.access;
+                document.getElementById('refreshTokenDisplay').innerText = data.refresh;
+                badge.className = 'badge bg-success';
+                badge.innerText = `Autenticado: ${username}`;
+                document.getElementById('includeAuthHeader').checked = true;
+            } else {
+                limpiarTokens();
+                badge.className = 'badge bg-danger';
+                badge.innerText = 'Error Credenciales';
+                alert('Error al autenticar: ' + JSON.stringify(data));
+            }
+        } catch (err) {
+            console.error(err);
+            badge.className = 'badge bg-danger';
+            badge.innerText = 'Error Conexión';
+            alert('Error de red al conectar con /api/token/');
+        }
+    }
+
+    async function renovarTokenJWT() {
+        const badge = document.getElementById('jwtStatusBadge');
+        if (!globalRefreshToken) {
+            alert('No hay Refresh Token disponible. Primero solicite tokens con usuario y contraseña.');
+            return;
+        }
+
+        badge.className = 'badge bg-info text-dark';
+        badge.innerText = 'Renovando...';
+
+        try {
+            const resp = await fetch('/api/token/refresh/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refresh: globalRefreshToken })
+            });
+
+            const data = await resp.json();
+
+            if (resp.ok) {
+                globalAccessToken = data.access;
+                document.getElementById('accessTokenDisplay').innerText = data.access;
+                if (data.refresh) {
+                    globalRefreshToken = data.refresh;
+                    document.getElementById('refreshTokenDisplay').innerText = data.refresh;
+                }
+                badge.className = 'badge bg-success';
+                badge.innerText = 'Token Renovado';
+            } else {
+                badge.className = 'badge bg-danger';
+                badge.innerText = 'Refresh Inválido';
+                alert('No se pudo renovar: ' + JSON.stringify(data));
+            }
+        } catch (err) {
+            console.error(err);
+            badge.className = 'badge bg-danger';
+            badge.innerText = 'Error Conexión';
+        }
+    }
+
+    function actualizarUrlPreview() {
+        const baseEndpoint = document.getElementById('apiEndpoint').value;
+        const idVal = document.getElementById('resourceId').value.trim();
+        let finalUrl = baseEndpoint;
+        if (idVal) {
+            finalUrl = `${baseEndpoint}${idVal}/`;
+        }
+        document.getElementById('urlPreview').value = finalUrl;
+    }
+
+    function actualizarPlantillaPorEntidad() {
+        actualizarUrlPreview();
+        const endpoint = document.getElementById('apiEndpoint').value;
+        const method = document.getElementById('httpMethod').value;
+        if (method === 'POST' || method === 'PUT') {
+            if (endpoint.includes('planes')) {
+                cargarPlantillaPlan();
+            } else if (endpoint.includes('clases')) {
+                cargarPlantillaClase();
+            }
+        }
+    }
+
+    function actualizarPlantillaPorMetodo() {
+        const method = document.getElementById('httpMethod').value;
+        const bodyContainer = document.getElementById('bodyContainer');
+        if (method === 'GET' || method === 'DELETE') {
+            bodyContainer.style.opacity = '0.5';
+        } else {
+            bodyContainer.style.opacity = '1';
+            actualizarPlantillaPorEntidad();
+        }
+    }
+
+    function cargarPlantillaPlan() {
+        document.getElementById('requestBody').value = JSON.stringify({
+            "nombre": "Plan Semestral VIP",
+            "precio": 89990,
+            "duracion_dias": 180
+        }, null, 2);
+    }
+
+    function cargarPlantillaClase() {
+        const fechaManana = new Date(Date.now() + 86400000).toISOString();
+        document.getElementById('requestBody').value = JSON.stringify({
+            "nombre": "CrossFit Avanzado",
+            "instructor": "Entrenador Certificado",
+            "fecha_hora": fechaManana,
+            "capacidad_maxima": 15
+        }, null, 2);
+    }
+
+    async function ejecutarPeticionRest() {
+        const url = document.getElementById('urlPreview').value;
+        const method = document.getElementById('httpMethod').value;
+        const includeAuth = document.getElementById('includeAuthHeader').checked;
+        const statusBadge = document.getElementById('responseStatusBadge');
+        const latencyDisplay = document.getElementById('requestLatency');
+        const jsonViewer = document.getElementById('jsonResponseViewer');
+
+        const headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        };
+
+        if (includeAuth && globalAccessToken) {
+            headers['Authorization'] = `Bearer ${globalAccessToken}`;
+        }
+
+        const options = {
+            method: method,
+            headers: headers
+        };
+
+        if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
+            const rawBody = document.getElementById('requestBody').value.trim();
+            if (rawBody) {
+                try {
+                    // Validar JSON sintáctico antes de enviar
+                    JSON.parse(rawBody);
+                    options.body = rawBody;
+                } catch (e) {
+                    alert('El cuerpo ingresado no es un JSON válido: ' + e.message);
+                    return;
+                }
+            }
+        }
+
+        statusBadge.className = 'badge bg-warning text-dark';
+        statusBadge.innerText = 'Enviando...';
+        jsonViewer.innerText = 'Esperando respuesta del servidor...';
+
+        const tInicio = performance.now();
+
+        try {
+            const response = await fetch(url, options);
+            const tFin = performance.now();
+            const duracion = Math.round(tFin - tInicio);
+            latencyDisplay.innerText = `Latencia: ${duracion} ms`;
+
+            let badgeClass = 'bg-success';
+            if (response.status >= 300 && response.status < 400) badgeClass = 'bg-info';
+            if (response.status === 401 || response.status === 403) badgeClass = 'bg-warning text-dark';
+            if (response.status >= 400 && response.status !== 401 && response.status !== 403) badgeClass = 'bg-danger';
+            if (response.status >= 500) badgeClass = 'bg-dark';
+
+            statusBadge.className = `badge ${badgeClass}`;
+            statusBadge.innerText = `${response.status} ${response.statusText || 'OK'}`;
+
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const json = await response.json();
+                jsonViewer.innerText = JSON.stringify(json, null, 2);
+            } else {
+                const text = await response.text();
+                jsonViewer.innerText = text || `[Sin contenido - Código HTTP ${response.status}]`;
+            }
+        } catch (error) {
+            const tFin = performance.now();
+            latencyDisplay.innerText = `Fallo en ${Math.round(tFin - tInicio)} ms`;
+            statusBadge.className = 'badge bg-danger';
+            statusBadge.innerText = 'Error de Red';
+            jsonViewer.innerText = `Error al ejecutar la petición:\n${error.message}`;
+        }
+    }
+
+    // Inicialización al cargar la página
+    document.addEventListener('DOMContentLoaded', () => {
+        actualizarUrlPreview();
+        actualizarPlantillaPorMetodo();
+    });
+</script>
+{% endblock %}

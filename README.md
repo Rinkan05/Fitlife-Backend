@@ -1,10 +1,10 @@
-# 🏋️ FitLife - Plataforma de Control de Asistencia y Reserva de Clases
+# 🏋️ FitLife - Plataforma de Control de Asistencia, Pagos Webpay y API REST
 
-**Evaluación Parcial N°3: Desarrollo Backend (30%)**  
+**Evaluación N° 3 y N° 4: Desarrollo Backend & Arquitectura Cloud Segura (30% c/u)**  
 **Institución:** INACAP  
 **Docente:** Marcelo Alvarado Aravena  
 **Caso Asignado:** Proyecto 2 - FitLife  
-**Stack Tecnológico:** Python, Django, Django REST Framework (DRF), PostgreSQL, Gunicorn, Nginx, AWS EC2, DuckDNS y Transbank Webpay Plus.
+**Stack Tecnológico:** Python 3.12+, Django 6.1.3, Django REST Framework (DRF), SimpleJWT, PostgreSQL / Amazon RDS, Amazon S3, Amazon API Gateway, Amazon CloudWatch, Gunicorn, Nginx, DuckDNS SSL y Transbank Webpay Plus.
 
 ---
 
@@ -13,6 +13,11 @@
 * **URL Principal en Producción (Dominio Seguro con SSL):**  
   [https://fitlife-inacap.duckdns.org/](https://fitlife-inacap.duckdns.org/)  
   *(Respaldo por IP Elástica: `http://32.192.112.28/`)*
+* **Consola Cliente REST API & Autenticación JWT (Evaluación 4):**  
+  [https://fitlife-inacap.duckdns.org/api-cliente/](https://fitlife-inacap.duckdns.org/api-cliente/)
+* **Endpoints de Tokens JWT:**  
+  * Emisión: `POST https://fitlife-inacap.duckdns.org/api/token/`  
+  * Renovación: `POST https://fitlife-inacap.duckdns.org/api/token/refresh/`
 * **Panel de Administración (Django Admin):**  
   [https://fitlife-inacap.duckdns.org/admin/](https://fitlife-inacap.duckdns.org/admin/)  
   * **Usuario Administrador:** `admin`  
@@ -27,6 +32,8 @@
   [https://fitlife-inacap.duckdns.org/clases/](https://fitlife-inacap.duckdns.org/clases/)
 * **Endpoints API REST (DRF):**  
   [https://fitlife-inacap.duckdns.org/api/](https://fitlife-inacap.duckdns.org/api/)
+* **Informe Técnico Oficial & Banco de Preguntas Oral (Evaluación 4):**  
+  [`deploy/INFORME_TECNICO_EVALUACION_4.md`](deploy/INFORME_TECNICO_EVALUACION_4.md)
 
 ---
 

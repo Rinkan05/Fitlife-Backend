@@ -243,3 +243,4 @@ Abre tu navegador en:
 - **Planes & Transbank Webpay:** `/planes/`
 - **API REST (DRF):** `/api/`
 - **Django Admin:** `/admin/` (Login: `admin` / `admin123`)
+

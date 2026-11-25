@@ -151,3 +151,58 @@ Se crearon en la carpeta `deploy/` y en la raíz del proyecto:
 **Resultado:**
 - En `Templates/simulador_acceso.html`, se encapsuló la lista de membresías de prueba dentro de `{% if user.is_authenticated and user.is_staff %}`.
 - Para socios regulares autenticados, se dispuso un botón personal exclusivo (`Escanear Mi Carnet`) que valida únicamente su propio `user.membresia.codigo_qr`, impidiendo que un usuario suplante a otros en el simulador.
+
+
+---
+
+## 14. Integración de Autenticación Stateless con JWT (Evaluación 4)
+**Prompt solicitado a la IA:**
+"Configura la autenticación y autorización basada en tokens JWT en FitLife utilizando `djangorestframework-simplejwt`. Configura los endpoints `/api/token/` y `/api/token/refresh/`, añade los ajustes de expiración (2h de Access y 7d de Refresh) y protege los ViewSets con `IsAuthenticatedOrReadOnly` para que cualquier operación de escritura requiera un token Bearer válido."
+
+**Resultado:**
+- Se instaló y configuró `rest_framework_simplejwt` en `requirements.txt` y `core/settings.py`.
+- Se añadieron `TokenObtainPairView` y `TokenRefreshView` en `gimnasio/urls.py`.
+- Se configuró la política global `IsAuthenticatedOrReadOnly`, garantizando que la lectura de planes y clases sea pública, pero la creación, modificación y eliminación requiera el token en la cabecera `Authorization: Bearer <token>`.
+
+
+---
+
+## 15. Configuración y Demostración de Criptografía de Contraseñas (Evaluación 4)
+**Prompt solicitado a la IA:**
+"Ajusta la configuración de `PASSWORD_HASHERS` en Django para evidenciar el almacenamiento irreversible de contraseñas mediante PBKDF2 y Argon2, explicando el rol del salt y las iteraciones frente a algoritmos vulnerables como MD5 o SHA-1."
+
+**Resultado:**
+- Se definió la lista `PASSWORD_HASHERS` en `core/settings.py` priorizando `PBKDF2PasswordHasher` con 720.000 iteraciones y soporte para `Argon2` y `BCrypt`.
+- Se documentó en el informe técnico la estructura del hash almacenado en PostgreSQL (`pbkdf2_sha256$720000$...`), demostrando que las contraseñas nunca se guardan en texto plano y que el salt único por usuario anula ataques de tablas arcoíris.
+
+
+---
+
+## 16. Construcción de la Consola Cliente REST Interactiva (Evaluación 4)
+**Prompt solicitado a la IA:**
+"Diseña una interfaz web interactiva que consuma la API REST de FitLife usando JavaScript nativo. Debe permitir obtener tokens JWT, refrescarlos, visualizar los tokens activos, y realizar operaciones CRUD completas (GET, POST, PUT, DELETE) con un interruptor para enviar o no la cabecera Authorization: Bearer, demostrando los códigos HTTP 200, 201, 401 y 403 en vivo."
+
+**Resultado:**
+- Se creó `Templates/api_cliente.html` y la vista `api_cliente_view` en `/api-cliente/`.
+- La interfaz cuenta con presets de credenciales, visualizador de tokens, consola HTTP con selector de métodos y endpoints, plantillas JSON predefinidas para planes y clases, medición de latencia y visor de respuestas JSON con badges de estado HTTP.
+
+
+---
+
+## 17. Script de Verificación de Rate Limiting y Throttling en API Gateway (Evaluación 4)
+**Prompt solicitado a la IA:**
+"Desarrolla un script en Python que envíe una ráfaga concurrente de peticiones HTTP a un endpoint de la API para probar el mecanismo de Throttling (2 req/s con burst de 5), evidenciando el código de estado HTTP 429 Too Many Requests y generando un reporte en consola."
+
+**Resultado:**
+- Se creó el script `deploy/test_rate_limit.py` utilizando `ThreadPoolExecutor` y `urllib.request`.
+- El script permite configurar URL, cantidad de peticiones y concurrencia, imprimiendo una tabla en tiempo real con latencias y códigos HTTP, destacando las peticiones aceptadas (200) y limitadas (429) con un resumen estadístico.
+
+
+---
+
+## 18. Elaboración del Informe Técnico y Banco de Preguntas Oral (Evaluación 4)
+**Prompt solicitado a la IA:**
+"Genera el informe técnico completo para la Evaluación 4 cubriendo las 8 actividades de la rúbrica (DRF & JWT, SAST SonarQube, DAST OWASP ZAP, Hashing de contraseñas, Amazon API Gateway, Amazon RDS con Security Groups, Amazon S3 con Block Public Access, CloudWatch/SNS, y respaldos automáticos cada 7 horas con EventBridge y Lambda) más las respuestas detalladas para los cuatro bloques de preguntas del examen oral."
+
+**Resultado:**
+- Se generó el documento maestro `deploy/INFORME_TECNICO_EVALUACION_4.md` con más de 400 líneas de contenido técnico riguroso, diagramas de arquitectura, comandos de escaneo, tablas comparativas, código Lambda en Python para backups y las respuestas a las 20 preguntas del banco oral (Bloques A, B, C y D).
